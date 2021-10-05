@@ -1,0 +1,147 @@
+---
+- hosts: civicrm
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+  - name: Create user, domain and database
+    import_tasks: tasks/hslamp.yml
+  - name: Install composer
+    import_tasks: tasks/hscomposer.yml
+
+
+  - name: Install Drupal with Composer
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://packagist.org/packages/drupal-composer/drupal-project and https://github.com/drupal-composer/drupal-project
+      ~/composer/composer.phar create-project drupal-composer/drupal-project:9.x-dev "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web"
+
+    #  composer_executable is only available in latest Ansible version, and somehow this still does fail
+    #composer:
+    #  command: create-project
+    #  composer_executable: "/home/pacs/{{pac}}/users/{{user}}/composer"
+    #  arguments: drupal-composer/recommended-project "/home/pacs/{{pac}}/users/{{user}}/drupal"
+    #  working_dir: "/home/pacs/{{pac}}/users/{{user}}/drupal"
+
+  - name: Install Drupal site with Drush
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      (echo "yes" | vendor/drush/drush/drush site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
+      touch /home/pacs/{{pac}}/users/{{user}}/.siteinstalled
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/.siteinstalled"
+
+  - name: drop htdocs-ssl
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+       path: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
+       state: absent
+
+  - name: create symbolic link for htdocs-ssl
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      src: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web"
+      dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
+      state: link
+
+  - name: Load page once to create twig files
+    uri:
+      url: https://{{domain}}
+
+  - name: change RewriteBase in htaccess
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/.htaccess
+      regexp: '^.*RewriteBase /$'
+      line: RewriteBase /
+  - name: change Options in files htaccess
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/.htaccess
+      regexp: '^Options -Indexes.*$'
+      line: Options -Indexes -MultiViews
+  - name: change Options in twig htaccess
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/php/twig/.htaccess
+      regexp: '^Options -Indexes.*$'
+      line: Options -Indexes -MultiViews
+
+  - name: download civicrm
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    # see https://docs.civicrm.org/installation/en/latest/drupal8/#download
+    # need to use -v to avoid: [ErrorException] implode(): Invalid arguments passed
+    # https://packagist.org/packages/civicrm/civicrm-asset-plugin
+    # https://packagist.org/packages/civicrm/civicrm-drupal-8
+    shell: |
+      ~/composer/composer.phar config extra.enable-patching true || exit -1
+      ~/composer/composer.phar config minimum-stability dev || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar require -v "civicrm/civicrm-asset-plugin:~1.1" || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar require -v civicrm/civicrm-{core,packages,drupal-8}:'~5.41' || exit -1
+      touch /home/pacs/{{pac}}/users/{{user}}/.cividownloaded
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/.cividownloaded"
+
+  - name: download civicrm translations
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      src: https://sourceforge.net/projects/civicrm/files/civicrm-stable/5.41.2/civicrm-5.41.2-l10n.tar.gz/download
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/
+      extra_opts: [--strip-components=1] # to avoid the civicrm directory
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
+
+  - name: download cv helper tool
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    get_url:
+      url: https://download.civicrm.org/cv/cv.phar
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
+      mode: '0700'
+
+  - name: make settings directory writeable
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default"
+      state: directory
+      mode: '0755'
+
+  - name: create symbolic link for civicrm cv in domain
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      src: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar"
+      dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar"
+      state: link
+
+  - name: install civicrm with cv
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.civicrm.org/installation/en/latest/general/cli-cv/
+      # cmsBaseUrl is unavailable or malformed. Consider setting it explicitly: see https://github.com/civicrm/civicrm-core/blob/master/setup/plugins/checkRequirements/CheckBaseUrl.civi-setup.php#L25
+      # path of cv needs to be part of base url
+      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar core:install --cms-base-url="https://{{domain}}/" --lang="de_DE" || exit -1
+      touch /home/pacs/{{pac}}/users/{{user}}/.civiinstalled
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/.civiinstalled"

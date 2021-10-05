@@ -1,0 +1,36 @@
+#################################
+## install the latest composer
+#################################
+---
+- name: create composer directory
+  become: yes
+  become_user: "{{pac}}-{{user}}"
+  file:
+    path: "/home/pacs/{{pac}}/users/{{user}}/composer"
+    state: directory
+- name: download composer installer
+  become: yes
+  become_user: "{{pac}}-{{user}}"
+  get_url:
+    url: https://getcomposer.org/installer
+    dest: "/home/pacs/{{pac}}/users/{{user}}/composer/composer-setup.php"
+- name: check hash of composer installer
+  become: yes
+  become_user: "{{pac}}-{{user}}"
+  shell: |
+    # see https://getcomposer.org/download/ for the current hash; currently for composer 2.1.8
+    hash="906a84df04cea2aa72f40b5f787e49f22d4c2f19492ac310e8cba5b96ac8b64115ac402c8cd292b8a03482574915d1a8"
+    php -r "if (hash_file('sha384', 'composer-setup.php') === '$hash') { echo 'Installer verified'; exit(0); } else { echo 'Installer corrupt'; unlink('composer-setup.php'); exit(-1); }"
+  args:
+    executable: /bin/bash
+    chdir: "/home/pacs/{{pac}}/users/{{user}}/composer"
+- name: run composer installer
+  become: yes
+  become_user: "{{pac}}-{{user}}"
+  shell: |
+    php composer-setup.php
+    php -r "unlink('composer-setup.php');"
+  args:
+    executable: /bin/bash
+    chdir: "/home/pacs/{{pac}}/users/{{user}}/composer"
+    creates: "/home/pacs/{{pac}}/users/{{user}}/composer/composer.phar"

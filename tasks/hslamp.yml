@@ -1,0 +1,10 @@
+---
+#################################
+## setup the user, the domain, the database
+#################################
+- name: ensure user exists
+  hsuser.js: name="{{pac}}-{{user}}" password="{{password}}" exists="true"
+- name: setup domain
+  hsdomain.js: name="{{domain}}" owner="{{pac}}-{{user}}" exists="true"
+- name: setup database
+  hsdatabase.js: name="{{pac}}_{{user}}" password="{{password}}" instance="mysql" exists="true"
