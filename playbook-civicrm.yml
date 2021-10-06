@@ -145,3 +145,13 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
       creates: "/home/pacs/{{pac}}/users/{{user}}/.civiinstalled"
+
+  - name: setup cronjob for civicrm
+    # see https://docs.civicrm.org/sysadmin/en/latest/setup/jobs/
+    # use cv rather than drush: https://lab.civicrm.org/dev/drupal/-/issues/76
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    cron:
+      name: "civicrm"
+      minute: "33"
+      job: "/usr/bin/php /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar api job.execute --user={{adminname}} --cwd=/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
