@@ -1,0 +1,61 @@
+---
+- hosts: civicrm
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+  - name: Update Drupal with composer and drush
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
+      ~/composer/composer.phar update drupal/core --with-dependencies || exit -1
+      vendor/drush/drush/drush updatedb || exit -1
+      vendor/drush/drush/drush cache:rebuild || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
+  - name: Update CiviCRM with composer and cv
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
+      ~/composer/composer.phar update civicrm/civicrm-asset-plugin || exit -1
+      ~/composer/composer.phar update civicrm/civicrm-{core,packages,drupal-8} || exit -1
+      # or for a bigger upgrade:
+      # composer require civicrm/civicrm-asset-plugin:~1.1
+      # composer require civicrm/civicrm-{core,packages,drupal-8}:~5.41.0
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
+  - name: download civicrm translations again
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      src: https://sourceforge.net/projects/civicrm/files/civicrm-stable/5.41.2/civicrm-5.41.2-l10n.tar.gz/download
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/
+      extra_opts: [--strip-components=1] # to avoid the civicrm directory
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
+
+  - name: download cv helper tool
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    get_url:
+      url: https://download.civicrm.org/cv/cv.phar
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
+      mode: '0700'
+
+  - name: update civicrm with cv
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
+      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar upgrade:db || exit -1
+      # clear cache
+      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar flush || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
