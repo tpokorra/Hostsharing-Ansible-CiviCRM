@@ -9,7 +9,7 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
-      ~/composer/composer.phar update -v drupal/core --with-dependencies || exit -1
+      (echo "yes" | ~/composer/composer.phar update -v drupal/core --with-dependencies) || exit -1
       vendor/drush/drush/drush updatedb || exit -1
       vendor/drush/drush/drush cache:rebuild || exit -1
     args:
