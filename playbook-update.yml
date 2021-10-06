@@ -9,7 +9,7 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
-      (echo "yes" | ~/composer/composer.phar update -v drupal/core --with-dependencies) || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar update -v drupal/core --with-dependencies || exit -1
       vendor/drush/drush/drush updatedb || exit -1
       vendor/drush/drush/drush cache:rebuild || exit -1
     args:
@@ -21,11 +21,11 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
-      ~/composer/composer.phar update -v civicrm/civicrm-asset-plugin || exit -1
-      ~/composer/composer.phar update -v civicrm/civicrm-{core,packages,drupal-8} || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar update -v civicrm/civicrm-asset-plugin || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar update -v civicrm/civicrm-{core,packages,drupal-8} || exit -1
       # or for a bigger upgrade:
-      # ~/composer/composer.phar require -v civicrm/civicrm-asset-plugin:~1.1
-      # ~/composer/composer.phar require -v civicrm/civicrm-{core,packages,drupal-8}:~5.41.0
+      # COMPOSER_COMPILE=1 ~/composer/composer.phar require -v civicrm/civicrm-asset-plugin:~1.1
+      # COMPOSER_COMPILE=1 ~/composer/composer.phar require -v civicrm/civicrm-{core,packages,drupal-8}:~5.41.0
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
