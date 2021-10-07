@@ -10,8 +10,8 @@
     shell: |
       # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
       COMPOSER_COMPILE=1 ~/composer/composer.phar update -v drupal/core --with-dependencies || exit -1
-      vendor/drush/drush/drush updatedb || exit -1
-      vendor/drush/drush/drush cache:rebuild || exit -1
+      vendor/drush/drush/drush updatedb -l https://{{domain}}/ || exit -1
+      vendor/drush/drush/drush cache:rebuild -l https://{{domain}}/  || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
