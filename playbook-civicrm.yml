@@ -11,7 +11,7 @@
   - name: Create user, domain and database
     import_tasks: tasks/hslamp.yml
 
-  - name: Sleep to avoid issue: invalid user for temporary files
+  - name: Sleep to avoid issue invalid user for temporary files
     pause:
       seconds: 10
 
