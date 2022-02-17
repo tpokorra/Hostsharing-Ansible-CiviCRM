@@ -97,10 +97,10 @@
     # https://packagist.org/packages/civicrm/civicrm-asset-plugin
     # https://packagist.org/packages/civicrm/civicrm-drupal-8
     shell: |
-      ~/composer/composer.phar config extra.enable-patching true || exit -1
-      ~/composer/composer.phar config minimum-stability dev || exit -1
-      COMPOSER_COMPILE=1 ~/composer/composer.phar require -v "civicrm/civicrm-asset-plugin:~1.1" || exit -1
-      COMPOSER_COMPILE=1 ~/composer/composer.phar require -v civicrm/civicrm-{core,packages,drupal-8}:'~5.41' || exit -1
+      ~/composer/composer.phar --no-interaction config extra.enable-patching true || exit -1
+      ~/composer/composer.phar --no-interaction config minimum-stability dev || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v "civicrm/civicrm-asset-plugin:~1.1" || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'~5.41' || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.cividownloaded
     args:
       executable: /bin/bash
