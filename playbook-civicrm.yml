@@ -24,7 +24,7 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://packagist.org/packages/drupal-composer/drupal-project and https://github.com/drupal-composer/drupal-project
-      ~/composer/composer.phar create-project drupal-composer/drupal-project:9.x-dev "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      ~/composer/composer.phar --no-interaction create-project drupal-composer/drupal-project:9.x-dev "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}"
