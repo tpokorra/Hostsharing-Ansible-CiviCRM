@@ -9,7 +9,7 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
-      COMPOSER_COMPILE=1 ~/composer/composer.phar update -v drupal/core --with-dependencies || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction update -v drupal/core --with-dependencies || exit -1
       vendor/drush/drush/drush updatedb -l https://{{domain}}/ || exit -1
       vendor/drush/drush/drush cache:rebuild -l https://{{domain}}/  || exit -1
     args:
@@ -21,11 +21,11 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
-      COMPOSER_COMPILE=1 ~/composer/composer.phar update -v civicrm/civicrm-asset-plugin || exit -1
-      COMPOSER_COMPILE=1 ~/composer/composer.phar update -v civicrm/civicrm-{core,packages,drupal-8} || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-asset-plugin || exit -1
+      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-{core,packages,drupal-8} || exit -1
       # or for a bigger upgrade:
-      # COMPOSER_COMPILE=1 ~/composer/composer.phar require -v civicrm/civicrm-asset-plugin:~1.1
-      # COMPOSER_COMPILE=1 ~/composer/composer.phar require -v civicrm/civicrm-{core,packages,drupal-8}:~5.41.0
+      # COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-asset-plugin:~1.1
+      # COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:{{civicrm_version}}
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -34,7 +34,7 @@
     become: yes
     become_user: "{{pac}}-{{user}}"
     unarchive:
-      src: https://sourceforge.net/projects/civicrm/files/civicrm-stable/5.41.2/civicrm-5.41.2-l10n.tar.gz/download
+      src: https://sourceforge.net/projects/civicrm/files/civicrm-stable/{{civicrm_version}}/civicrm-{{civicrm_version}}-l10n.tar.gz/download
       remote_src: yes
       dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/
       extra_opts: [--strip-components=1] # to avoid the civicrm directory
