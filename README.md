@@ -24,11 +24,11 @@ Then we change the working directory:
 
 All needed parameters can be set in the inventory file now. Change xyz00 to the name of your package admin. Set the name of a domain, a new user and a password. We can edit the inventory file with:
 
-    $ vim inventory
+    $ vim inventory.yml
     
-The option -i can be used to read this inventory file instead of the /etc/ansible/hosts file. If we want to login with an SSH-Key instead of an SSH-Password, we have to remove the -k option from the following string. The -K is needed to prompt us once for the sudo password of the new user. We run:
+The option -i can be used to read this inventory file instead of the /etc/ansible/hosts file.  We want to login with an SSH-Key. We run:
 
-    $ ansible-playbook -i inventory playbook-civicrm.yml -k -K
+    $ ansible-playbook -i inventory.yml playbook-civicrm.yml
 
 Now we can reach our site via:
 
