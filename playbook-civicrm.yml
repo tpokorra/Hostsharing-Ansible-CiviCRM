@@ -144,11 +144,12 @@
   - name: install civicrm with cv
     become: yes
     become_user: "{{pac}}-{{user}}"
+    # see https://docs.civicrm.org/installation/en/latest/general/cli-cv/
+    # cmsBaseUrl is unavailable or malformed. Consider setting it explicitly: see https://github.com/civicrm/civicrm-core/blob/master/setup/plugins/checkRequirements/CheckBaseUrl.civi-setup.php#L25
+    # path of cv needs to be part of base url
+    # other issue: somehow cv.phar always returns a non empty status code, so we have to ignore it.
     shell: |
-      # see https://docs.civicrm.org/installation/en/latest/general/cli-cv/
-      # cmsBaseUrl is unavailable or malformed. Consider setting it explicitly: see https://github.com/civicrm/civicrm-core/blob/master/setup/plugins/checkRequirements/CheckBaseUrl.civi-setup.php#L25
-      # path of cv needs to be part of base url
-      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar core:install --cms-base-url="https://{{domain}}/" --lang="de_DE" || exit -1
+      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar core:install --cms-base-url="https://{{domain}}/" --lang="de_DE" || echo "ignore exit status"
       touch /home/pacs/{{pac}}/users/{{user}}/.civiinstalled
     args:
       executable: /bin/bash
