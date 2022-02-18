@@ -4,6 +4,15 @@
     ansible_python_interpreter: /usr/bin/python3
 
   tasks:
+  - name: Put site into maintenance mode
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      vendor/drush/drush/drush vset maintenance_mode 1 || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
   - name: Update Drupal with composer and drush
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -16,7 +25,7 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
-  - name: Update CiviCRM with composer and cv
+  - name: Update CiviCRM with composer
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
@@ -48,14 +57,23 @@
       dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
       mode: '0700'
 
-  - name: update civicrm with cv
+  - name: update CiviCRM with cv
     become: yes
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
-      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar upgrade:db || exit -1
+      ./cv.phar upgrade:db || exit -1
       # clear cache
-      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar flush || exit -1
+      ./cv.phar flush || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
+  - name: Put site back online
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      vendor/drush/drush/drush vset maintenance_mode 0 || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
