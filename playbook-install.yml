@@ -228,6 +228,21 @@
       state: file
       mode: 0440
 
+  - name: configure the smtp module
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_on 1 || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_host "{{mail_hostname}}" || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_port 4587 || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_protocol "tls" || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_autotls 1 || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_username "{{mail_username}}" || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_password "{{mail_password}}" || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_from "{{mail_from}}" || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
   - name: setup cronjob for civicrm
     # see https://docs.civicrm.org/sysadmin/en/latest/setup/jobs/
