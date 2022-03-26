@@ -48,6 +48,37 @@
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
       creates: "/home/pacs/{{pac}}/users/{{user}}/.siteinstalled"
 
+  - name: Install Drupal Console
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://drupalconsole.com/docs/en/getting/composer
+      ~/composer/composer.phar --no-interaction require 'drupal/console:~1.0'
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/drupal/console"
+
+  - name: Install SMTP module for Drupal
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      # see https://www.drupal.org/project/smtp
+      ~/composer/composer.phar --no-interaction require 'drupal/smtp:^1.0'
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      creates: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/modules/contrib/smtp/README.txt"
+
+  - name: Enable SMTP module with drush
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      vendor/drush/drush/drush -y en smtp || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
   - name: drop htdocs-ssl
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -63,9 +94,14 @@
       dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
       state: link
 
-  - name: Load page once to create twig files
-    uri:
-      url: https://{{domain}}
+  - name: compile the twig files with drush
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      vendor/drush/drush/drush twig:compile || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
   - name: change RewriteBase in htaccess
     become: yes
@@ -163,6 +199,36 @@
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
       creates: "/home/pacs/{{pac}}/users/{{user}}/.civiinstalled"
 
+  - name: create bin directory
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/bin"
+      state: directory
+      mode: 0744
+
+  - name: upload mysql script
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/mysql.sh" src="templates/mysql.sh" mode=0700
+
+  - name: set the trusted host pattern for this domain
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    lineinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/settings.php"
+      regexp: ^\$settings.'trusted_host_patterns'. = .*
+      line: $settings['trusted_host_patterns'] = [ '^{{domain.replace('.', '\.')}}$', ];
+
+  - name: make civicrm settings readonly
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/civicrm.settings.php"
+      state: file
+      mode: 0440
+
+
   - name: setup cronjob for civicrm
     # see https://docs.civicrm.org/sysadmin/en/latest/setup/jobs/
     # use cv rather than drush: https://lab.civicrm.org/dev/drupal/-/issues/76
@@ -172,3 +238,11 @@
       name: "civicrm"
       minute: "33"
       job: "/usr/bin/php /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar api job.execute --user={{adminname}} --cwd=/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
+  - name: setup cronjob for drupal
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    cron:
+      name: "drupal"
+      minute: "29"
+      job: "$HOME/drupal-civicrm/vendor/drush/drush/drush --root=$HOME/drupal-civicrm --uri={{domain}} --quiet cron"

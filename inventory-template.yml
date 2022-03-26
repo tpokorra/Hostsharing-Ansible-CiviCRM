@@ -1,0 +1,26 @@
+civicrm:
+  hosts:
+    {{pac}}:
+      ansible_ssh_host: {{pac}}.hostsharing.net
+      ansible_ssh_user: {{pac}}
+      pac: {{pac}}
+      domain: {{domain}}
+      user: {{username}}
+      password: {{password}}
+
+      mail_from: {{smtp_from}}
+      mail_hostname: {{smtp_host}}
+      mail_username: {{smtp_user}}
+      mail_password: {{smtp_pwd}}
+
+      SaasActivationPassword: {{SaasActivationPassword}}
+      SaasInstanceStatus: {{SaasInstanceStatus}}
+
+      adminname: civi_admin
+      adminpwd: {{RandomPassword}}
+      sitename: "Mein CiviCRM"
+
+      # see https://packagist.org/packages/drupal-composer/drupal-project#9.x-dev
+      drupal_version: 9.x-dev
+      # see https://civicrm.org/download
+      civicrm_version: 5.47.2
