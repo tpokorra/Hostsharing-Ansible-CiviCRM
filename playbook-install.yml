@@ -8,6 +8,9 @@
     #allow_world_readable_tmpfiles: true
 
   tasks:
+  #################################
+  ## setup the user, the domain, the database
+  #################################
   - name: Create user, domain and database
     import_tasks: tasks/hslamp.yml
 
@@ -15,10 +18,16 @@
     pause:
       seconds: 10
 
+  #################################
+  ## install requirements: composer
+  #################################
   - name: Install composer
     import_tasks: tasks/hscomposer.yml
 
 
+  #################################
+  ## install drupal
+  #################################
   - name: Install Drupal with Composer
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -79,6 +88,18 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
+  - name: compile the twig files with drush
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      vendor/drush/drush/drush twig:compile || exit -1
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
+  #################################
+  ## configure the website
+  #################################
   - name: drop htdocs-ssl
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -93,15 +114,6 @@
       src: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web"
       dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
       state: link
-
-  - name: compile the twig files with drush
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    shell: |
-      vendor/drush/drush/drush twig:compile || exit -1
-    args:
-      executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
   - name: change RewriteBase in htaccess
     become: yes
@@ -125,18 +137,21 @@
       regexp: '^Options -Indexes.*$'
       line: Options -Indexes -MultiViews
 
+  #################################
+  ## install civicrm
+  #################################
   - name: download civicrm
     become: yes
     become_user: "{{pac}}-{{user}}"
-    # see https://docs.civicrm.org/installation/en/latest/drupal8/#download
+    # see https://docs.civicrm.org/installation/en/latest/drupal9/
     # need to use -v to avoid: [ErrorException] implode(): Invalid arguments passed
     # https://packagist.org/packages/civicrm/civicrm-asset-plugin
     # https://packagist.org/packages/civicrm/civicrm-drupal-8
     shell: |
       ~/composer/composer.phar --no-interaction config extra.enable-patching true || exit -1
       ~/composer/composer.phar --no-interaction config minimum-stability dev || exit -1
-      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v "civicrm/civicrm-asset-plugin:~1.1" || exit -1
-      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.cividownloaded
     args:
       executable: /bin/bash
@@ -177,13 +192,15 @@
       dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar"
       state: link
 
-  - name: create symbolic link for civicrm packages
+  - name: set the civicrm.packages path and url
     become: yes
     become_user: "{{pac}}-{{user}}"
-    file:
-      src: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-packages"
-      dest: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/packages"
-      state: link
+    blockinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/settings.php"
+      block: |
+        global $civicrm_paths;
+        $civicrm_paths['civicrm.packages']['path'] = '/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-packages/';
+        $civicrm_paths['civicrm.packages']['url'] = 'https://{{domain}}/libraries/civicrm/packages/';
 
   - name: install civicrm with cv
     become: yes
@@ -192,25 +209,12 @@
     # cmsBaseUrl is unavailable or malformed. Consider setting it explicitly: see https://github.com/civicrm/civicrm-core/blob/master/setup/plugins/checkRequirements/CheckBaseUrl.civi-setup.php#L25
     # path of cv needs to be part of base url
     shell: |
-      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar core:install --cms-base-url="https://{{domain}}/" --lang="de_DE" || exit -1
+      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar core:install --cms-base-url="https://{{domain}}" --lang="de_DE" || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.civiinstalled
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
       creates: "/home/pacs/{{pac}}/users/{{user}}/.civiinstalled"
-
-  - name: create bin directory
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    file:
-      path: "/home/pacs/{{pac}}/users/{{user}}/bin"
-      state: directory
-      mode: 0744
-
-  - name: upload mysql script
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/mysql.sh" src="templates/mysql.sh" mode=0700
 
   - name: set the trusted host pattern for this domain
     become: yes
@@ -220,6 +224,17 @@
       regexp: ^\$settings.'trusted_host_patterns'. = .*
       line: $settings['trusted_host_patterns'] = [ '^{{domain.replace('.', '\.')}}$', ];
 
+  - name: set the civicrm settings and paths
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    blockinfile:
+      path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/civicrm.settings.php"
+      block: |
+        $civicrm_setting['URL Preferences']['userFrameworkResourceURL'] = CIVICRM_UF_BASEURL . '/libraries/civicrm/';
+        $civicrm_paths['civicrm.root']['url'] = CIVICRM_UF_BASEURL . '/libraries/civicrm/';
+        $civicrm_setting['domain']['userFrameworkResourceURL'] = CIVICRM_UF_BASEURL . '/libraries/civicrm/';
+        $civicrm_paths['cms.root']['path'] = '/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web';
+
   - name: make civicrm settings readonly
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -228,6 +243,25 @@
       state: file
       mode: 0440
 
+  - name: download and publish the civicrm assets
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    shell: |
+      ~/composer/composer.phar config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true
+      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-downloads-plugin true
+      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/civicrm-asset-plugin true
+      ~/composer/composer.phar config --no-plugins allow-plugins.drupal/console-extend-plugin true
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction install || exit -1
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction civicrm:publish || exit -1
+      cd ~/drupal-civicrm/web/libraries/civicrm && for f in core/*; do echo $f; ln -s $f || echo "$f exists"; done
+    args:
+      executable: /bin/bash
+      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+
+  #################################
+  ## configuration
+  #################################
   - name: configure the smtp module
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -244,6 +278,25 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
+  #################################
+  ## install useful helper scripts
+  #################################
+  - name: create bin directory
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/bin"
+      state: directory
+      mode: 0744
+
+  - name: upload mysql script
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/mysql.sh" src="templates/mysql.sh" mode=0700
+
+  #################################
+  ## configure cronjobs
+  #################################
   - name: setup cronjob for civicrm
     # see https://docs.civicrm.org/sysadmin/en/latest/setup/jobs/
     # use cv rather than drush: https://lab.civicrm.org/dev/drupal/-/issues/76
