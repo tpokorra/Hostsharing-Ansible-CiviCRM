@@ -28,7 +28,7 @@
   become: yes
   become_user: "{{pac}}-{{user}}"
   shell: |
-    php composer-setup.php
+    php composer-setup.php --version="{{composer_version}}"
     php -r "unlink('composer-setup.php');"
   args:
     executable: /bin/bash

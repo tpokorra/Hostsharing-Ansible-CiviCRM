@@ -20,6 +20,9 @@ civicrm:
       adminpwd: {{RandomPassword}}
       sitename: "Mein CiviCRM"
 
+      # see https://getcomposer.org/download/
+      # we currently have issues with 2.3.2
+      composer_version: 2.2.10
       # see https://packagist.org/packages/drupal-composer/drupal-project#9.x-dev
       drupal_version: 9.x-dev
       # see https://civicrm.org/download
