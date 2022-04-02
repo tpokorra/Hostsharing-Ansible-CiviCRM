@@ -25,8 +25,8 @@ try {
   $statement = $pdo->prepare("update users_field_data set mail=:email, init=:email, status=1, created=NOW(), changed=NOW() where name=:username and status=0");
   $statement->execute(array(':email' => $USER_EMAIL_ADDRESS, ':username' => 'civi_admin'));
 
-  $statement = $pdo->prepare("update civicrm_email set email=:email where email='admin@example.com'");
-  $statement->execute(array(':email' => $USER_EMAIL_ADDRESS));
+  // need to rebuild the cache for the user account to be activated
+  exec('export HOME=/home/pacs/{{pac}}/users/{{user}} && cd $HOME/drupal-civicrm && vendor/drush/drush/drush cache:rebuild', $output);
 }
 catch (Exception $e) {
     // echo 'Exception caught: ',  $e->getMessage(), "\n";

@@ -18,7 +18,7 @@ civicrm:
 
       adminname: civi_admin
       adminpwd: {{RandomPassword}}
-      adminemail: changeme@example.com
+      adminemail: no-reply@solidcharity.com
       sitename: "Mein CiviCRM"
 
       # see https://getcomposer.org/download/

@@ -9,7 +9,7 @@ civicrm:
       password: testpassw0rd_changeme
       adminname: my_admin
       adminpwd: CHANGEME
-      adminemail: changeme@example.com
+      adminemail: no-reply@example.org
       sitename: "Mein CiviCRM"
 
       mail_from: no-reply@example.org
