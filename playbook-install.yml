@@ -51,6 +51,7 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       (echo "yes" | vendor/drush/drush/drush site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
+      (echo "yes" | vendor/drush/drush/drush config:set system.site mail "{{adminemail}}") || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.siteinstalled
     args:
       executable: /bin/bash

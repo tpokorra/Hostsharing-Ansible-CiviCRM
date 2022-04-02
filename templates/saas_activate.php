@@ -22,8 +22,11 @@ try {
     exit(1);
   }
   $pdo = new PDO('mysql:host=localhost;dbname='.$DB_NAME, $DB_USERNAME, $DB_PASSWORD);
-  $statement = $pdo->prepare("update users_field_data set mail=:email, status=1, created=NOW(), changed=NOW() where name=:username and status=0");
+  $statement = $pdo->prepare("update users_field_data set mail=:email, init=:email, status=1, created=NOW(), changed=NOW() where name=:username and status=0");
   $statement->execute(array(':email' => $USER_EMAIL_ADDRESS, ':username' => 'civi_admin'));
+
+  $statement = $pdo->prepare("update civicrm_email set email=:email where email='admin@example.com'");
+  $statement->execute(array(':email' => $USER_EMAIL_ADDRESS));
 }
 catch (Exception $e) {
     // echo 'Exception caught: ',  $e->getMessage(), "\n";
