@@ -1,6 +1,6 @@
 civicrm:
   hosts:
-    {{pac}}:
+    {{pac}}-{{username}}:
       ansible_ssh_host: {{pac}}.hostsharing.net
       ansible_ssh_user: {{pac}}
       pac: {{pac}}
@@ -27,4 +27,4 @@ civicrm:
       # see https://packagist.org/packages/drupal-composer/drupal-project#9.x-dev
       drupal_version: 9.x-dev
       # see https://civicrm.org/download
-      civicrm_version: 5.47.4
+      civicrm_version: 5.48.2
