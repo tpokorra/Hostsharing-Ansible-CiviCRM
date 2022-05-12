@@ -18,7 +18,8 @@ civicrm:
       mail_password: topsecret
 
       # see https://getcomposer.org/download/
-      composer_version: 2.3.5
+      # we currently have issues with 2.3.2
+      composer_version: 2.2.12
       # see https://packagist.org/packages/drupal-composer/drupal-project#9.x-dev
       drupal_version: 9.x-dev
       # see https://civicrm.org/download
