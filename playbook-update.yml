@@ -3,6 +3,10 @@
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
+  # check if update was successful:
+  # ~/composer/composer.phar outdated "drupal/*"
+  # ~/composer/composer.phar outdated "civicrm/*"
+
   tasks:
   - name: Put site into maintenance mode
     become: yes
@@ -19,7 +23,7 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
-      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction update -v drupal/core --with-dependencies || exit -1
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update drupal/core "drupal/core-*" --with-all-dependencies || exit -1
       vendor/drush/drush/drush updatedb -l https://{{domain}}/ || exit -1
       vendor/drush/drush/drush cache:rebuild -l https://{{domain}}/  || exit -1
     args:
@@ -31,11 +35,15 @@
     become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
-      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-asset-plugin || exit -1
-      COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-{core,packages,drupal-8} || exit -1
+      ##COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-asset-plugin || exit -1
+      #COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-{core,packages,drupal-8} --with-all-dependencies || exit -1
+
       # or for a bigger upgrade:
-      # COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-asset-plugin:~1.1
-      # COMPOSER_COMPILE=1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:{{civicrm_version}}
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-asset-plugin:~1.1 || exit -1
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:{{civicrm_version}} --with-all-dependencies || exit -1
+
+      vendor/drush/drush/drush updatedb -l https://{{domain}}/ || exit -1
+      vendor/drush/drush/drush cache:rebuild -l https://{{domain}}/  || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
