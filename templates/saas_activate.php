@@ -1,7 +1,5 @@
 <?php
 
-include "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/settings.php";
-
 function Get($index, $defaultValue) {
   return isset($_GET[$index]) ? $_GET[$index] : $defaultValue;
 }
@@ -13,15 +11,13 @@ if (Get('SaasActivationPassword', 'invalid') != '{{SaasActivationPassword}}') {
 }
 
 try {
-  $DB_NAME = $databases['default']['default']['database'];
-  $DB_USERNAME = $databases['default']['default']['username'];
-  $DB_PASSWORD = $databases['default']['default']['password'];
   $USER_EMAIL_ADDRESS = Get('UserEmailAddress', '');
   if (empty($USER_EMAIL_ADDRESS)) {
     echo '{"success": false, "msg": "missing email address"}';
     exit(1);
   }
-  $pdo = new PDO('mysql:host=localhost;dbname='.$DB_NAME, $DB_USERNAME, $DB_PASSWORD);
+  $pdo = new PDO('mysql:host=localhost;dbname={{pac}}_{{user}}', '{{pac}}_{{user}}', '{{password}}');
+  $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   $statement = $pdo->prepare("update users_field_data set mail=:email, init=:email, status=1, created=NOW(), changed=NOW() where name=:username and status=0");
   $statement->execute(array(':email' => $USER_EMAIL_ADDRESS, ':username' => 'civi_admin'));
 
