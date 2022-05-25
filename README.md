@@ -16,16 +16,17 @@ This file should be protected, else it would be world readable:
 
 We clone this git-repo to our machine:
 
-    $ git clone https://github.com/tpokorra/Hostsharing-Ansible-CiviCRM.git
+    $ git clone https://github.com/tpokorra/Hostsharing-Ansible-CiviCRM-Drupal.git
 
 Then we change the working directory:
 
-    $ cd Hostsharing-Ansible-CiviCRM
+    $ cd Hostsharing-Ansible-CiviCRM-Drupal
 
 All needed parameters can be set in the inventory file now. Change xyz00 to the name of your package admin. Set the name of a domain, a new user and a password. We can edit the inventory file with:
 
+    $ cp inventory-sample.yml inventory.yml
     $ vim inventory.yml
-    
+
 The option -i can be used to read this inventory file instead of the /etc/ansible/hosts file.  We want to login with an SSH-Key. We run:
 
     $ ansible-playbook -i inventory.yml playbook-install.yml
