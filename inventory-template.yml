@@ -9,9 +9,7 @@ civicrm:
       password: {{password}}
 
       mail_from: {{smtp_from}}
-      mail_hostname: {{smtp_host}}
-      mail_username: {{smtp_user}}
-      mail_password: {{smtp_pwd}}
+      mail_hostname: {{pac}}.hostsharing.net
 
       SaasActivationPassword: {{SaasActivationPassword}}
       SaasInstanceStatus: {{SaasInstanceStatus}}

@@ -274,8 +274,8 @@
       echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_protocol "tls" || exit -1
       echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_autotls 1 || exit -1
       echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_allowhtml 0 || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_username "{{mail_username}}" || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_password "{{mail_password}}" || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_username "{{pac}}-{{user}}" || exit -1
+      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_password "{{password}}" || exit -1
       echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_from "{{mail_from}}" || exit -1
     args:
       executable: /bin/bash

@@ -14,8 +14,6 @@ civicrm:
 
       mail_from: no-reply@example.org
       mail_hostname: xyz00.hostsharing.net
-      mail_username: xyz00-mailer
-      mail_password: topsecret
 
       # see https://getcomposer.org/download/
       # we currently have issues with 2.3.2
