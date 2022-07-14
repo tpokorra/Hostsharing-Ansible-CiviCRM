@@ -58,17 +58,6 @@
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
       creates: "/home/pacs/{{pac}}/users/{{user}}/.siteinstalled"
 
-  - name: Install Drupal Console
-    become: yes
-    become_user: "{{pac}}-{{user}}"
-    shell: |
-      # see https://drupalconsole.com/docs/en/getting/composer
-      ~/composer/composer.phar --no-interaction require 'drupal/console:~1.0'
-    args:
-      executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
-      creates: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/drupal/console"
-
   - name: Install SMTP module for Drupal
     become: yes
     become_user: "{{pac}}-{{user}}"
@@ -151,6 +140,9 @@
     shell: |
       ~/composer/composer.phar --no-interaction config extra.enable-patching true || exit -1
       ~/composer/composer.phar --no-interaction config minimum-stability dev || exit -1
+      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/civicrm-asset-plugin true || exit -1
+      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-downloads-plugin true || exit -1
+      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true || exit -1
       COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
       COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.cividownloaded
