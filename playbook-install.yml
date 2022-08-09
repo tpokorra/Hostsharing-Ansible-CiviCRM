@@ -140,8 +140,6 @@
     shell: |
       ~/composer/composer.phar --no-interaction config extra.enable-patching true || exit -1
       ~/composer/composer.phar --no-interaction config minimum-stability dev || exit -1
-      wget https://patch-diff.githubusercontent.com/raw/civicrm/civicrm-core/pull/24198.patch -O zeta_components_mail_24198.patch
-      patch -p1 < zeta_components_mail_24198.patch
       ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/civicrm-asset-plugin true || exit -1
       ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-downloads-plugin true || exit -1
       ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true || exit -1
