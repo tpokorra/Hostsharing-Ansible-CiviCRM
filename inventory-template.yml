@@ -20,7 +20,7 @@ civicrm:
       sitename: "Mein CiviCRM"
 
       # see https://getcomposer.org/download/
-      composer_version: 2.3.10
+      composer_version: 2.4.1
       # see https://packagist.org/packages/drupal-composer/drupal-project#9.x-dev
       drupal_version: 9.x-dev
       # see https://civicrm.org/download
