@@ -26,6 +26,7 @@
       chmod u+w web/sites/default || exit -1
       # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
       COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update drupal/core "drupal/core-*" --with-all-dependencies || exit -1
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update drupal/smtp --with-all-dependencies || exit -1
       echo "yes" | vendor/drush/drush/drush updatedb -l https://{{domain}}/ || exit -1
       vendor/drush/drush/drush cache:rebuild -l https://{{domain}}/  || exit -1
     args:
