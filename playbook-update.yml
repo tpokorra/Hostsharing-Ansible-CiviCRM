@@ -54,7 +54,7 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
-  - name: download civicrm translations again
+  - name: download civicrm translations directly
     become: yes
     become_user: "{{pac}}-{{user}}"
     unarchive:
@@ -63,6 +63,18 @@
       dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/
       extra_opts: [--strip-components=1] # to avoid the civicrm directory
       creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
+    when: url_proxy is not defined
+
+  - name: download civicrm translations from proxy
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      src: {{url_proxy}}/civicrm-{{civicrm_version}}-l10n.tar.gz
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/
+      extra_opts: [--strip-components=1] # to avoid the civicrm directory
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
+    when: url_proxy is defined
 
   - name: download cv helper tool
     become: yes

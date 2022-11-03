@@ -25,3 +25,5 @@ civicrm:
       drupal_version: 9.x-dev
       # see https://civicrm.org/download
       civicrm_version: 5.54.2
+
+      url_proxy: https://proxy.solidcharity.com
