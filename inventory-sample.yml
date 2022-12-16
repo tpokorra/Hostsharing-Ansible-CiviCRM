@@ -20,4 +20,4 @@ civicrm:
       # see https://packagist.org/packages/drupal-composer/drupal-project#9.x-dev
       drupal_version: 9.x-dev
       # see https://civicrm.org/download
-      civicrm_version: 5.55.2
+      civicrm_version: 5.56.0
