@@ -24,6 +24,11 @@
   - name: Install composer
     import_tasks: tasks/hscomposer.yml
 
+  ##################################
+  ## update PHP
+  ##################################
+  - name: Install lastest PHP
+    import_tasks: tasks/hs_php8_buster.yml
 
   #################################
   ## install drupal
