@@ -1,5 +1,6 @@
 ---
 - hosts: civicrm
+  become_user: "{{pac}}-{{user}}"
   vars:
     ansible_python_interpreter: /usr/bin/python3
     # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
@@ -35,7 +36,6 @@
   #################################
   - name: Install Drupal with Composer
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://packagist.org/packages/drupal-composer/drupal-project and https://github.com/drupal-composer/drupal-project
       ~/composer/composer.phar --no-interaction create-project drupal-composer/drupal-project:{{drupal_version}} "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -53,7 +53,6 @@
 
   - name: Install Drupal site with Drush
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       (echo "yes" | vendor/drush/drush/drush site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
       (echo "yes" | vendor/drush/drush/drush config:set system.site mail "{{adminemail}}") || exit -1
@@ -65,7 +64,6 @@
 
   - name: Install SMTP module for Drupal
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://www.drupal.org/project/smtp
       ~/composer/composer.phar --no-interaction require 'drupal/smtp:^1.0'
@@ -76,7 +74,6 @@
 
   - name: Enable SMTP module with drush
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       vendor/drush/drush/drush -y en smtp || exit -1
     args:
@@ -85,7 +82,6 @@
 
   - name: compile the twig files with drush
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       vendor/drush/drush/drush twig:compile || exit -1
     args:
@@ -97,14 +93,12 @@
   #################################
   - name: drop htdocs-ssl
     become: yes
-    become_user: "{{pac}}-{{user}}"
     file:
        path: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
        state: absent
 
   - name: create symbolic link for htdocs-ssl
     become: yes
-    become_user: "{{pac}}-{{user}}"
     file:
       src: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web"
       dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/htdocs-ssl"
@@ -112,21 +106,18 @@
 
   - name: change RewriteBase in htaccess
     become: yes
-    become_user: "{{pac}}-{{user}}"
     lineinfile:
       path: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/.htaccess
       regexp: '^.*RewriteBase /$'
       line: RewriteBase /
   - name: change Options in files htaccess
     become: yes
-    become_user: "{{pac}}-{{user}}"
     lineinfile:
       path: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/.htaccess
       regexp: '^Options -Indexes.*$'
       line: Options -Indexes -MultiViews
   - name: change Options in twig htaccess
     become: yes
-    become_user: "{{pac}}-{{user}}"
     lineinfile:
       path: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/php/twig/.htaccess
       regexp: '^Options -Indexes.*$'
@@ -137,7 +128,6 @@
   #################################
   - name: download civicrm
     become: yes
-    become_user: "{{pac}}-{{user}}"
     # see https://docs.civicrm.org/installation/en/latest/drupal9/
     # need to use -v to avoid: [ErrorException] implode(): Invalid arguments passed
     # https://packagist.org/packages/civicrm/civicrm-asset-plugin
@@ -158,7 +148,6 @@
 
   - name: download civicrm translations directly
     become: yes
-    become_user: "{{pac}}-{{user}}"
     unarchive:
       src: https://sourceforge.net/projects/civicrm/files/civicrm-stable/{{civicrm_version}}/civicrm-{{civicrm_version}}-l10n.tar.gz/download
       remote_src: yes
@@ -169,7 +158,6 @@
 
   - name: download civicrm translations from proxy
     become: yes
-    become_user: "{{pac}}-{{user}}"
     unarchive:
       src: "{{url_proxy}}/civicrm-{{civicrm_version}}-l10n.tar.gz"
       remote_src: yes
@@ -180,7 +168,6 @@
 
   - name: download cv helper tool
     become: yes
-    become_user: "{{pac}}-{{user}}"
     get_url:
       url: https://download.civicrm.org/cv/cv.phar
       dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
@@ -188,7 +175,6 @@
 
   - name: make settings directory writeable
     become: yes
-    become_user: "{{pac}}-{{user}}"
     file:
       path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default"
       state: directory
@@ -196,7 +182,6 @@
 
   - name: create symbolic link for civicrm cv in domain
     become: yes
-    become_user: "{{pac}}-{{user}}"
     file:
       src: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar"
       dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar"
@@ -204,7 +189,6 @@
 
   - name: set the civicrm.packages path and url
     become: yes
-    become_user: "{{pac}}-{{user}}"
     blockinfile:
       path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/settings.php"
       block: |
@@ -214,7 +198,6 @@
 
   - name: install civicrm with cv
     become: yes
-    become_user: "{{pac}}-{{user}}"
     # see https://docs.civicrm.org/installation/en/latest/general/cli-cv/
     # cmsBaseUrl is unavailable or malformed. Consider setting it explicitly: see https://github.com/civicrm/civicrm-core/blob/master/setup/plugins/checkRequirements/CheckBaseUrl.civi-setup.php#L25
     # path of cv needs to be part of base url
@@ -228,7 +211,6 @@
 
   - name: set the trusted host pattern for this domain
     become: yes
-    become_user: "{{pac}}-{{user}}"
     lineinfile:
       path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/settings.php"
       regexp: ^\$settings.'trusted_host_patterns'. = .*
@@ -236,7 +218,6 @@
 
   - name: set the civicrm settings and paths
     become: yes
-    become_user: "{{pac}}-{{user}}"
     blockinfile:
       path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/civicrm.settings.php"
       block: |
@@ -247,7 +228,6 @@
 
   - name: make civicrm settings readonly
     become: yes
-    become_user: "{{pac}}-{{user}}"
     file:
       path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/civicrm.settings.php"
       state: file
@@ -255,7 +235,6 @@
 
   - name: download and publish the civicrm assets
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       ~/composer/composer.phar config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
       ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true
@@ -274,7 +253,6 @@
   #################################
   - name: configure the smtp module
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_on 1 || exit -1
       echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_host "{{mail_hostname}}" || exit -1
@@ -294,7 +272,6 @@
   #################################
   - name: create bin directory
     become: yes
-    become_user: "{{pac}}-{{user}}"
     file:
       path: "/home/pacs/{{pac}}/users/{{user}}/bin"
       state: directory
@@ -302,7 +279,6 @@
 
   - name: upload mysql script
     become: yes
-    become_user: "{{pac}}-{{user}}"
     template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/mysql.sh" src="templates/mysql.sh" mode=0700
 
   #################################
@@ -312,7 +288,6 @@
     # see https://docs.civicrm.org/sysadmin/en/latest/setup/jobs/
     # use cv rather than drush: https://lab.civicrm.org/dev/drupal/-/issues/76
     become: yes
-    become_user: "{{pac}}-{{user}}"
     cron:
       name: "civicrm"
       minute: "33"
@@ -320,7 +295,6 @@
 
   - name: setup cronjob for drupal
     become: yes
-    become_user: "{{pac}}-{{user}}"
     cron:
       name: "drupal"
       minute: "29"

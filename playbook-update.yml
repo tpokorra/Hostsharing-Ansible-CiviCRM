@@ -1,5 +1,6 @@
 ---
 - hosts: civicrm
+  become_user: "{{pac}}-{{user}}"
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
@@ -10,7 +11,6 @@
   tasks:
   - name: Put site into maintenance mode
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       vendor/drush/drush/drush state:set system.maintenance_mode 1 --input-format=integer || exit -1
       vendor/drush/drush/drush cache:rebuild || exit -1
@@ -20,7 +20,6 @@
 
   - name: Update Drupal with composer and drush
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       # to avoid problem: Could not delete /home/pacs/.../drupal-civicrm/web/sites/default/default.settings.php
       chmod u+w web/sites/default || exit -1
@@ -35,7 +34,6 @@
 
   - name: Update CiviCRM with composer
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
       ##COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-asset-plugin || exit -1
@@ -56,7 +54,6 @@
 
   - name: download civicrm translations directly
     become: yes
-    become_user: "{{pac}}-{{user}}"
     unarchive:
       src: https://sourceforge.net/projects/civicrm/files/civicrm-stable/{{civicrm_version}}/civicrm-{{civicrm_version}}-l10n.tar.gz/download
       remote_src: yes
@@ -67,7 +64,6 @@
 
   - name: download civicrm translations from proxy
     become: yes
-    become_user: "{{pac}}-{{user}}"
     unarchive:
       src: "{{url_proxy}}/civicrm-{{civicrm_version}}-l10n.tar.gz"
       remote_src: yes
@@ -78,7 +74,6 @@
 
   - name: download cv helper tool
     become: yes
-    become_user: "{{pac}}-{{user}}"
     get_url:
       url: https://download.civicrm.org/cv/cv.phar
       dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
@@ -86,7 +81,6 @@
 
   - name: update CiviCRM with cv
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
       echo "yes" | ./cv.phar upgrade:db || exit -1
@@ -98,7 +92,6 @@
 
   - name: Put site back online
     become: yes
-    become_user: "{{pac}}-{{user}}"
     shell: |
       vendor/drush/drush/drush state:set system.maintenance_mode 0 --input-format=integer || exit -1
       vendor/drush/drush/drush cache:rebuild || exit -1
