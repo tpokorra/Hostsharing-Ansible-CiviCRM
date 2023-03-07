@@ -4,7 +4,17 @@ civicrm:
       ansible_ssh_host: xyz00.hostsharing.net
       ansible_ssh_user: xyz00
       pac: xyz00
+
       domain: civicrm.example.org
+      # the domain for forms that should be available to the constituents
+      forms_domain: civi.example.org
+      # the domain of the website of your charity
+      www_domain: www.example.org
+      # get your IP address with https://myip.solidcharity.com/
+      backend_allow_ip: 123.123.123.123
+      # ping -4 xyz00.hostsharing.net
+      proxy_allow_ip: 124.124.124.124
+
       user: civicrm
       password: testpassw0rd_changeme
       adminname: my_admin

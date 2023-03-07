@@ -1,0 +1,64 @@
+---
+- hosts: civicrm
+  become_user: "{{pac}}-{{user}}"
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
+    ansible_common_remote_group: "{{pac}}"
+    # avoid error: Failed to set permissions on the temporary files Ansible needs to create when becoming an unprivileged user
+    #allow_world_readable_tmpfiles: true
+
+  tasks:
+  ############################################################
+  ## securing the backend and adding proxied domain for forms
+  ############################################################
+  - name: upload htaccess for the backend to deny access for unprivileged IP addresses
+    become: yes
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/.htaccess" src="templates/htaccess_crm" mode=0644
+
+  - name: setup the domain for the forms
+    hsdomain.js: name="{{forms_domain}}" owner="{{pac}}-{{user}}" exists="true"
+
+  - name: Sleep to wait until the domain was created
+    pause:
+      seconds: 10
+
+  - name: upload htaccess for the forms domain to allow specific queries
+    become: yes
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/doms/{{forms_domain}}/.htaccess" src="templates/htaccess_forms" mode=0644
+
+  - name: create directory for proxy
+    become: yes
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/proxy"
+      state: directory
+      mode: 0755
+
+  # original: https://github.com/zounar/php-proxy/
+  # our branch: https://github.com/SolidCharity/php-proxy/tree/TP202209-work
+  - name: download our own branch of php-proxy
+    become: yes
+    unarchive:
+      creates: /home/pacs/{{pac}}/users/{{user}}/proxy/Proxy.php
+      src: https://github.com/SolidCharity/php-proxy/archive/refs/heads/TP202209-work.tar.gz
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/proxy
+      extra_opts: [--strip-components=1]
+
+  - name: upload php proxy configuration file
+    become: yes
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/proxy/config.php" src="templates/proxy.config.php" mode=0644
+
+  - name: drop htdocs-ssl of forms domain
+    become: yes
+    file:
+       path: "/home/pacs/{{pac}}/users/{{user}}/doms/{{forms_domain}}/htdocs-ssl"
+       state: absent
+
+  - name: create symbolic link for htdocs-ssl for the forms domain
+    become: yes
+    file:
+      src: "/home/pacs/{{pac}}/users/{{user}}/proxy"
+      dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{forms_domain}}/htdocs-ssl"
+      state: link
+

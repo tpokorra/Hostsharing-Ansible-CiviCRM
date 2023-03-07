@@ -1,0 +1,39 @@
+RewriteEngine On
+RewriteBase /
+
+# no parameter
+RewriteCond %{REQUEST_URI} ^/$
+RewriteCond %{QUERY_STRING} ^$
+RewriteRule . https://{{www_domain}}/ [R=302,L]
+
+# avoid direct access to Proxy.php
+RewriteCond %{REQUEST_URI} ^/Proxy.php$ [OR]
+RewriteCond %{REQUEST_URI} ^/index.php$
+RewriteRule . https://{{www_domain}}/ [R=302,L]
+
+# we assume the setting "day and name" for the permalink_structure
+# if any of these conditions is met, then return a 403 http error
+RewriteCond %{REQUEST_URI} !^/civicrm/ajax/rest.*$
+RewriteCond %{REQUEST_URI} !^/civicrm/contribute/transact?.*$
+RewriteCond %{REQUEST_URI} !^/civicrm/payment/form/.*$
+RewriteCond %{REQUEST_URI} !^/civicrm/payment/ipn/.*$
+RewriteCond %{REQUEST_URI} !^/civicrm/mailing/subscribe/.*$
+RewriteCond %{REQUEST_URI} !^/civicrm/mailing/confirm/.*$
+RewriteCond %{REQUEST_URI} !^/?favicon\.ico$
+RewriteCond %{REQUEST_URI} !^(.*)/(.*)\.css$
+RewriteCond %{REQUEST_URI} !^(.*)/(.*)\.js$
+RewriteCond %{REQUEST_URI} !^(.*)/(.*)\.woff2$
+RewriteCond %{REQUEST_URI} !^(.*)/(.*)\.ttf$
+RewriteCond %{REQUEST_URI} !^(.*)/(.*)\.png$
+RewriteCond %{REQUEST_URI} !^(.*)/(.*)\.gif$
+# workaround for /fastcgi-bin/phpstub/Proxy.php
+RewriteCond %{REQUEST_URI} !^/(.*)Proxy.php$
+
+# for debugging, comment previous line, uncomment line below
+#RewriteRule . https://{{www_domain}}/?test2%{REQUEST_URI} [R=302,L]
+
+# see https://httpd.apache.org/docs/current/mod/mod_rewrite.html
+RewriteRule . - [R=403,L]
+
+# all other requests should be processed by the proxy
+FallbackResource /Proxy.php

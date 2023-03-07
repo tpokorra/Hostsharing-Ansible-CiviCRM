@@ -1,0 +1,7 @@
+order deny,allow
+deny from all
+
+# ping -4 xyz00.hostsharing.net
+allow from {{proxy_allow_ip}}
+
+allow from {{backend_allow_ip}}
