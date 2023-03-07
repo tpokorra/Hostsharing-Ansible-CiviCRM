@@ -24,6 +24,13 @@
   #################################
   ## install useful helper scripts
   #################################
+  - name: create bin directory
+    become: yes
+    file:
+      path: "/home/pacs/{{pac}}/users/{{user}}/bin"
+      state: directory
+      mode: 0744
+
   - name: upload mysql configuration file
     become: yes
     template: dest="/home/pacs/{{pac}}/users/{{user}}/.my.cnf" src="templates/my.cnf" mode=0600
@@ -32,7 +39,7 @@
     become: yes
     get_url:
       url: https://download.civicrm.org/cv/cv.phar
-      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
+      dest: /home/pacs/{{pac}}/users/{{user}}/bin/cv.phar
       mode: '0700'
 
   #################################
@@ -180,7 +187,7 @@
   - name: create symbolic link for civicrm cv in domain
     become: yes
     file:
-      src: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar"
+      src: "/home/pacs/{{pac}}/users/{{user}}/bin/cv.phar"
       dest: "/home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar"
       state: link
 

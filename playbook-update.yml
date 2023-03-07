@@ -72,20 +72,13 @@
       creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
     when: url_proxy is defined
 
-  - name: download cv helper tool
-    become: yes
-    get_url:
-      url: https://download.civicrm.org/cv/cv.phar
-      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
-      mode: '0700'
-
   - name: update CiviCRM with cv
     become: yes
     shell: |
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
-      echo "yes" | ./cv.phar upgrade:db || exit -1
+      echo "yes" | /home/pacs/{{pac}}/users/{{user}}/bin/cv.phar upgrade:db || exit -1
       # clear cache
-      ./cv.phar flush || exit -1
+      /home/pacs/{{pac}}/users/{{user}}/bin/cv.phar flush || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
