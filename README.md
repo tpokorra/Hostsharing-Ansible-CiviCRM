@@ -36,6 +36,10 @@ If you want to hide the full CRM functionality of CiviCRM behind a proxy, and ju
 
     $ ansible-playbook -i inventory.yml playbook-proxy.yml
 
+If you want to install extensions for SEPA Direct Debit, you can run:
+
+    $ ansible-playbook -i inventory.yml playbook-sepa.yml
+
 Now we can reach our site via:
 
     https://civicrm.example.org

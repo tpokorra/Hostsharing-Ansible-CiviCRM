@@ -1,0 +1,59 @@
+---
+- hosts: civicrm
+  become_user: "{{pac}}-{{user}}"
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    # see https://docs.ansible.com/ansible/latest/user_guide/become.html#risks-of-becoming-an-unprivileged-user
+    ansible_common_remote_group: "{{pac}}"
+    # avoid error: Failed to set permissions on the temporary files Ansible needs to create when becoming an unprivileged user
+    #allow_world_readable_tmpfiles: true
+
+  tasks:
+
+  ################################################
+  ## add extensions for SEPA direct debit and BIC
+  ################################################
+  - name: install extension SEPA direct debit integration with civicrm
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/org.project60.sepa-master
+      src: https://github.com/Project60/org.project60.sepa/archive/refs/heads/master.tar.gz
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext
+
+  - name: install extension SEPA direct debit payment processor
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/org.project60.sepapp-master
+      src: https://github.com/Project60/org.project60.sepapp/archive/refs/heads/master.tar.gz
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext
+
+  - name: install extension Little BIC extension
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/org.project60.bic-master
+      src: https://github.com/Project60/org.project60.bic/archive/refs/heads/master.tar.gz
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext
+
+  - name: install extension Recurring Buttons
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/recurringbuttons-master
+      src: https://lab.civicrm.org/extensions/recurringbuttons/-/archive/master/recurringbuttons-master.tar.gz
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext
+
+  - name: install extension Radio Buttons
+    become: yes
+    become_user: "{{pac}}-{{user}}"
+    unarchive:
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/radiobuttons-master
+      src: https://lab.civicrm.org/extensions/radiobuttons/-/archive/master/radiobuttons-master.tar.gz
+      remote_src: yes
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext
