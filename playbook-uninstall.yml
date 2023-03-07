@@ -10,6 +10,8 @@
   #################################
   - name: drop domain
     hsdomain.js: name="{{domain}}" owner="{{pac}}-{{user}}" exists="false"
+  - name: drop forms domain
+    hsdomain.js: name="{{forms_domain}}" owner="{{pac}}-{{user}}" exists="false"
   - name: drop database
     hsdatabase.js: name="{{pac}}_{{user}}" password="{{password}}" instance="mysql" exists="false"
   - name: remove user
