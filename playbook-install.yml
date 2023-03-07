@@ -10,16 +10,6 @@
 
   tasks:
   #################################
-  ## setup the user, the domain, the database
-  #################################
-  - name: Create user, domain and database
-    import_tasks: tasks/hslamp.yml
-
-  - name: Sleep to avoid issue invalid user for temporary files
-    pause:
-      seconds: 10
-
-  #################################
   ## install requirements: composer
   #################################
   - name: Install composer
@@ -30,6 +20,20 @@
   ##################################
   - name: Install lastest PHP
     import_tasks: tasks/hs_php8_buster.yml
+
+  #################################
+  ## install useful helper scripts
+  #################################
+  - name: upload mysql configuration file
+    become: yes
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/.my.cnf" src="templates/my.cnf" mode=0600
+
+  - name: download cv helper tool
+    become: yes
+    get_url:
+      url: https://download.civicrm.org/cv/cv.phar
+      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
+      mode: '0700'
 
   #################################
   ## install drupal
@@ -166,13 +170,6 @@
       creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
     when: url_proxy is defined
 
-  - name: download cv helper tool
-    become: yes
-    get_url:
-      url: https://download.civicrm.org/cv/cv.phar
-      dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/cv.phar
-      mode: '0700'
-
   - name: make settings directory writeable
     become: yes
     file:
@@ -276,10 +273,6 @@
       path: "/home/pacs/{{pac}}/users/{{user}}/bin"
       state: directory
       mode: 0744
-
-  - name: upload mysql script
-    become: yes
-    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/mysql.sh" src="templates/mysql.sh" mode=0700
 
   #################################
   ## configure cronjobs
