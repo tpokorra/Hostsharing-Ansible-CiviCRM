@@ -49,7 +49,7 @@
     become: yes
     shell: |
       # see https://packagist.org/packages/drupal-composer/drupal-project and https://github.com/drupal-composer/drupal-project
-      ~/composer/composer.phar --no-interaction create-project drupal-composer/drupal-project:{{drupal_version}} "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      php8.1 ~/composer/composer.phar --no-interaction create-project drupal-composer/drupal-project:{{drupal_version}} "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}"
@@ -65,8 +65,8 @@
   - name: Install Drupal site with Drush
     become: yes
     shell: |
-      (echo "yes" | vendor/drush/drush/drush site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
-      (echo "yes" | vendor/drush/drush/drush config:set system.site mail "{{adminemail}}") || exit -1
+      (echo "yes" | php8.1 vendor/drush/drush/drush site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
+      (echo "yes" | php8.1 vendor/drush/drush/drush config:set system.site mail "{{adminemail}}") || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.siteinstalled
     args:
       executable: /bin/bash
@@ -77,7 +77,7 @@
     become: yes
     shell: |
       # see https://www.drupal.org/project/smtp
-      ~/composer/composer.phar --no-interaction require 'drupal/smtp:^1.0'
+      php8.1 ~/composer/composer.phar --no-interaction require 'drupal/smtp:^1.0'
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -86,7 +86,7 @@
   - name: Enable SMTP module with drush
     become: yes
     shell: |
-      vendor/drush/drush/drush -y en smtp || exit -1
+      php8.1 vendor/drush/drush/drush -y en smtp || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -94,7 +94,7 @@
   - name: compile the twig files with drush
     become: yes
     shell: |
-      vendor/drush/drush/drush twig:compile || exit -1
+      php8.1 vendor/drush/drush/drush twig:compile || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -144,13 +144,13 @@
     # https://packagist.org/packages/civicrm/civicrm-asset-plugin
     # https://packagist.org/packages/civicrm/civicrm-drupal-8
     shell: |
-      ~/composer/composer.phar --no-interaction config extra.enable-patching true || exit -1
-      ~/composer/composer.phar --no-interaction config minimum-stability dev || exit -1
-      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/civicrm-asset-plugin true || exit -1
-      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-downloads-plugin true || exit -1
-      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true || exit -1
-      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
-      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
+      php8.1 ~/composer/composer.phar --no-interaction config extra.enable-patching true || exit -1
+      php8.1 ~/composer/composer.phar --no-interaction config minimum-stability dev || exit -1
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/civicrm-asset-plugin true || exit -1
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-downloads-plugin true || exit -1
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true || exit -1
+      COMPOSER_COMPILE=all php8.1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
+      COMPOSER_COMPILE=all php8.1 ~/composer/composer.phar --no-interaction require -v civicrm/civicrm-{core,packages,drupal-8}:'{{civicrm_version}}' || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.cividownloaded
     args:
       executable: /bin/bash
@@ -206,7 +206,7 @@
     # cmsBaseUrl is unavailable or malformed. Consider setting it explicitly: see https://github.com/civicrm/civicrm-core/blob/master/setup/plugins/checkRequirements/CheckBaseUrl.civi-setup.php#L25
     # path of cv needs to be part of base url
     shell: |
-      /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar core:install --cms-base-url="https://{{domain}}" --lang="de_DE" || exit -1
+      php8.1 /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar core:install --cms-base-url="https://{{domain}}" --lang="de_DE" || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.civiinstalled
     args:
       executable: /bin/bash
@@ -240,13 +240,13 @@
   - name: download and publish the civicrm assets
     become: yes
     shell: |
-      ~/composer/composer.phar config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true
-      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-downloads-plugin true
-      ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/civicrm-asset-plugin true
-      ~/composer/composer.phar config --no-plugins allow-plugins.drupal/console-extend-plugin true
-      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction install || exit -1
-      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction civicrm:publish || exit -1
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-compile-plugin true
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/composer-downloads-plugin true
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.civicrm/civicrm-asset-plugin true
+      php8.1 ~/composer/composer.phar config --no-plugins allow-plugins.drupal/console-extend-plugin true
+      COMPOSER_COMPILE=all php8.1 ~/composer/composer.phar --no-interaction install || exit -1
+      COMPOSER_COMPILE=all php8.1 ~/composer/composer.phar --no-interaction civicrm:publish || exit -1
       cd ~/drupal-civicrm/web/libraries/civicrm && for f in core/*; do echo $f; ln -s $f || echo "$f exists"; done
     args:
       executable: /bin/bash
@@ -258,15 +258,15 @@
   - name: configure the smtp module
     become: yes
     shell: |
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_on 1 || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_host "{{mail_hostname}}" || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_port 4587 || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_protocol "tls" || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_autotls 1 || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_allowhtml 0 || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_username "{{pac}}-{{user}}" || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_password "{{password}}" || exit -1
-      echo yes | vendor/drush/drush/drush config:set smtp.settings smtp_from "{{mail_from}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_on 1 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_host "{{mail_hostname}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_port 4587 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_protocol "tls" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_autotls 1 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_allowhtml 0 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_username "{{pac}}-{{user}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_password "{{password}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_from "{{mail_from}}" || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -298,4 +298,4 @@
     cron:
       name: "drupal"
       minute: "29"
-      job: "$HOME/drupal-civicrm/vendor/drush/drush/drush --root=$HOME/drupal-civicrm --uri={{domain}} --quiet cron"
+      job: "php8.1 $HOME/drupal-civicrm/vendor/drush/drush/drush --root=$HOME/drupal-civicrm --uri={{domain}} --quiet cron"
