@@ -86,7 +86,7 @@
   - name: Enable SMTP module with drush
     become: yes
     shell: |
-      php8.1 vendor/drush/drush/drush -y en smtp || exit -1
+      echo "yes" | php8.1 vendor/drush/drush/drush en smtp || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
