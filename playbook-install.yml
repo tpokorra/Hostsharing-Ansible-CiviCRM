@@ -62,6 +62,13 @@
     #  arguments: drupal-composer/recommended-project "/home/pacs/{{pac}}/users/{{user}}/drupal"
     #  working_dir: "/home/pacs/{{pac}}/users/{{user}}/drupal"
 
+  - name: Replace PHP version in composer.json
+    become: yes
+    replace:
+        path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/composer.json"
+        regexp: '"php": ">=7.4"'
+        replace: '"php": ">=8.1"'
+
   - name: Install Drupal site with Drush
     become: yes
     shell: |
