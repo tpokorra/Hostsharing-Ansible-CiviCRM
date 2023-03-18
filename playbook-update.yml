@@ -9,9 +9,14 @@
   # ~/composer/composer.phar outdated "civicrm/*"
 
   tasks:
+  - name: upload php script for Drush
+    become: yes
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/php" src="templates/php" mode=0700
+
   - name: Put site into maintenance mode
     become: yes
     shell: |
+      export PATH=$HOME/bin:$PATH
       vendor/drush/drush/drush state:set system.maintenance_mode 1 --input-format=integer || exit -1
       vendor/drush/drush/drush cache:rebuild || exit -1
     args:
