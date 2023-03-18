@@ -72,8 +72,8 @@
   - name: Install Drupal site with Drush
     become: yes
     shell: |
-      (echo "yes" | php8.1 vendor/drush/drush/drush site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
-      (echo "yes" | php8.1 vendor/drush/drush/drush config:set system.site mail "{{adminemail}}") || exit -1
+      (echo "yes" | php8.1 vendor/drush/drush/drush.php site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
+      (echo "yes" | php8.1 vendor/drush/drush/drush.php config:set system.site mail "{{adminemail}}") || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.siteinstalled
     args:
       executable: /bin/bash
@@ -93,8 +93,7 @@
   - name: Enable SMTP module with drush
     become: yes
     shell: |
-      # there is an issue with php7.4, but still the module is enabled
-      echo "yes" | php8.1 vendor/drush/drush/drush en smtp # || exit -1
+      echo "yes" | php8.1 vendor/drush/drush/drush.php en smtp || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -102,7 +101,7 @@
   - name: compile the twig files with drush
     become: yes
     shell: |
-      php8.1 vendor/drush/drush/drush twig:compile || exit -1
+      php8.1 vendor/drush/drush/drush.php twig:compile || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
@@ -272,15 +271,15 @@
   - name: configure the smtp module
     become: yes
     shell: |
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_on 1 || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_host "{{mail_hostname}}" || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_port 4587 || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_protocol "tls" || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_autotls 1 || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_allowhtml 0 || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_username "{{pac}}-{{user}}" || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_password "{{password}}" || exit -1
-      echo yes | php8.1 vendor/drush/drush/drush config:set smtp.settings smtp_from "{{mail_from}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_on 1 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_host "{{mail_hostname}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_port 4587 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_protocol "tls" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_autotls 1 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_allowhtml 0 || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_username "{{pac}}-{{user}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_password "{{password}}" || exit -1
+      echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_from "{{mail_from}}" || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
