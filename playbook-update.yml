@@ -26,6 +26,7 @@
   - name: Update Drupal with composer and drush
     become: yes
     shell: |
+      export PATH=$HOME/bin:$PATH
       # to avoid problem: Could not delete /home/pacs/.../drupal-civicrm/web/sites/default/default.settings.php
       chmod u+w web/sites/default || exit -1
       # see https://www.drupal.org/docs/updating-drupal/updating-drupal-core-via-composer
@@ -40,6 +41,7 @@
   - name: Update CiviCRM with composer
     become: yes
     shell: |
+      export PATH=$HOME/bin:$PATH
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
       ##COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-asset-plugin || exit -1
       #COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction update -v civicrm/civicrm-{core,packages,drupal-8} --with-all-dependencies || exit -1
@@ -80,6 +82,7 @@
   - name: update CiviCRM with cv
     become: yes
     shell: |
+      export PATH=$HOME/bin:$PATH
       # see https://docs.civicrm.org/sysadmin/en/latest/upgrade/drupal8/
       echo "yes" | /home/pacs/{{pac}}/users/{{user}}/bin/cv.phar upgrade:db || exit -1
       # clear cache
@@ -91,6 +94,7 @@
   - name: Put site back online
     become: yes
     shell: |
+      export PATH=$HOME/bin:$PATH
       vendor/drush/drush/drush state:set system.maintenance_mode 0 --input-format=integer || exit -1
       vendor/drush/drush/drush cache:rebuild || exit -1
     args:
