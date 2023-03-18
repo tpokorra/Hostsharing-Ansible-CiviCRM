@@ -35,6 +35,10 @@
     become: yes
     template: dest="/home/pacs/{{pac}}/users/{{user}}/.my.cnf" src="templates/my.cnf" mode=0600
 
+  - name: upload php script for Drush
+    become: yes
+    template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/php" src="templates/php" mode=0700
+
   - name: download cv helper tool
     become: yes
     get_url:
@@ -72,7 +76,7 @@
   - name: Install Drupal site with Drush
     become: yes
     shell: |
-      export DRUSH_PHP=/usr/bin/php8.1
+      export PATH=$HOME/bin:$PATH
       (echo "yes" | php8.1 vendor/drush/drush/drush.php site-install standard --locale=de --site-name="{{sitename}}" --db-url=mysql://{{pac}}_{{user}}:{{password}}@localhost/{{pac}}_{{user}} --account-name={{adminname}} --account-pass={{adminpwd}}) || exit -1
       (echo "yes" | php8.1 vendor/drush/drush/drush.php config:set system.site mail "{{adminemail}}") || exit -1
       touch /home/pacs/{{pac}}/users/{{user}}/.siteinstalled
@@ -94,7 +98,7 @@
   - name: Enable SMTP module with drush
     become: yes
     shell: |
-      export DRUSH_PHP=/usr/bin/php8.1
+      export PATH=$HOME/bin:$PATH
       echo "yes" | php8.1 vendor/drush/drush/drush.php en smtp || exit -1
     args:
       executable: /bin/bash
@@ -103,7 +107,7 @@
   - name: compile the twig files with drush
     become: yes
     shell: |
-      export DRUSH_PHP=/usr/bin/php8.1
+      export PATH=$HOME/bin:$PATH
       php8.1 vendor/drush/drush/drush.php twig:compile || exit -1
     args:
       executable: /bin/bash
@@ -274,7 +278,7 @@
   - name: configure the smtp module
     become: yes
     shell: |
-      export DRUSH_PHP=/usr/bin/php8.1
+      export PATH=$HOME/bin:$PATH
       echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_on 1 || exit -1
       echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_host "{{mail_hostname}}" || exit -1
       echo yes | php8.1 vendor/drush/drush/drush.php config:set smtp.settings smtp_port 4587 || exit -1
@@ -308,7 +312,7 @@
     cron:
       name: "civicrm"
       minute: "33"
-      job: "/usr/bin/php /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar api job.execute --user={{adminname}} --cwd=/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
+      job: "php8.1 /home/pacs/{{pac}}/users/{{user}}/doms/{{domain}}/cv.phar api job.execute --user={{adminname}} --cwd=/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
   - name: setup cronjob for drupal
     become: yes
