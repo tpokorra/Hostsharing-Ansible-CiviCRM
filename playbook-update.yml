@@ -9,9 +9,16 @@
   # ~/composer/composer.phar outdated "civicrm/*"
 
   tasks:
+
   - name: upload php script for Drush
     become: yes
     template: dest="/home/pacs/{{pac}}/users/{{user}}/bin/php" src="templates/php" mode=0700
+  - name: download cv helper tool
+    become: yes
+    get_url:
+      url: https://download.civicrm.org/cv/cv.phar
+      dest: /home/pacs/{{pac}}/users/{{user}}/bin/cv.phar
+      mode: '0700'
 
   - name: Put site into maintenance mode
     become: yes
@@ -91,6 +98,22 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
+  ###################################################
+  ## Update extensions
+  ###################################################
+  # see https://github.com/Project60/org.project60.banking/releases
+  - name: switch to CiviBanking
+    become: yes
+    set_fact:
+      extension_name: 'org.project60.banking'
+      extension_new_version: '0.8.2'
+      extension_url: 'https://github.com/Project60/org.project60.banking/releases/download/0.8.2/org.project60.banking-0.8.2.tar.gz'
+  - name: Update extension CiviBanking
+    import_tasks: tasks/update_civi_extension.yml
+
+  ###################################################
+  ## Finish the update
+  ###################################################
   - name: Put site back online
     become: yes
     shell: |

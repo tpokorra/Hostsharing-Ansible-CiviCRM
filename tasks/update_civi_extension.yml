@@ -1,0 +1,38 @@
+---
+- name: is extension installed?
+  become: yes
+  stat:
+    path: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/{{extension_name}}
+  register: extension_exists
+
+- name: touch ansible version file
+  become: yes
+  file:
+    path: /home/pacs/{{pac}}/users/{{user}}/.ansible_{{extension_name}}
+    state: touch
+
+- name: check current installation of extension
+  become: yes
+  command: "cat /home/pacs/{{pac}}/users/{{user}}/.ansible_{{extension_name}}"
+  register: extension_cur_version
+
+- name: remove extension
+  become: yes
+  file:
+    path: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/{{extension_name}}"
+    state: absent
+  when: extension_exists.stat.exists and extension_cur_version.stdout != extension_new_version
+
+- name: install extension
+  become: yes
+  unarchive:
+    creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext/{{extension_name}}
+    src: "{{extension_url}}"
+    remote_src: yes
+    dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/web/sites/default/files/civicrm/ext
+  when: extension_exists.stat.exists and extension_cur_version.stdout != extension_new_version
+
+- name: remember extension version
+  become: yes
+  template: dest="/home/pacs/{{pac}}/users/{{user}}/.ansible_{{extension_name}}" src="templates/ansible_extension_version" mode=0644
+  when: extension_exists.stat.exists and extension_cur_version.stdout != extension_new_version
