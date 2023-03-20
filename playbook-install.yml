@@ -319,4 +319,4 @@
     cron:
       name: "drupal"
       minute: "29"
-      job: "php8.1 $HOME/drupal-civicrm/vendor/drush/drush/drush --root=$HOME/drupal-civicrm --uri={{domain}} --quiet cron"
+      job: "PATH=$HOME/bin:$PATH $HOME/drupal-civicrm/vendor/drush/drush/drush --root=$HOME/drupal-civicrm --uri={{domain}} --quiet cron"
