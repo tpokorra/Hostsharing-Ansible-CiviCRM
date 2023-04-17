@@ -184,7 +184,7 @@
       remote_src: yes
       dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/
       extra_opts: [--strip-components=1] # to avoid the civicrm directory
-      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/l10n
     when: url_proxy is not defined
 
   - name: download civicrm translations from proxy
@@ -194,7 +194,7 @@
       remote_src: yes
       dest: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/
       extra_opts: [--strip-components=1] # to avoid the civicrm directory
-      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/i10n
+      creates: /home/pacs/{{pac}}/users/{{user}}/drupal-civicrm/vendor/civicrm/civicrm-core/l10n
     when: url_proxy is defined
 
   - name: make settings directory writeable
