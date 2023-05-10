@@ -161,17 +161,6 @@
   #################################
   ## install civicrm
   #################################
-  - name: revert to older version of pear-core-minimal
-    become: yes
-    # this is a temporary fix for CiviCRM 5.60.0
-    # see https://github.com/civicrm/civicrm-core/pull/26080
-    shell: |
-      export PATH=$HOME/bin:$PATH
-      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require pear/pear-core-minimal:v1.10.11 || exit -1
-    args:
-      executable: /bin/bash
-      chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
-
   - name: download civicrm
     become: yes
     # see https://docs.civicrm.org/installation/en/latest/drupal9/

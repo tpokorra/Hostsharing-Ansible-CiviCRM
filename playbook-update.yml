@@ -33,13 +33,13 @@
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
 
-  - name: revert to older version of pear-core-minimal
+  - name: go back to latest version of pear-core-minimal
     become: yes
-    # this is a temporary fix for CiviCRM 5.60.0
+    # this was a temporary fix for CiviCRM 5.60.0
     # see https://github.com/civicrm/civicrm-core/pull/26080
     shell: |
       source ~/.profile
-      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require pear/pear-core-minimal:v1.10.11 || exit -1
+      COMPOSER_COMPILE=all ~/composer/composer.phar --no-interaction require pear/pear-core-minimal || exit -1
     args:
       executable: /bin/bash
       chdir: "/home/pacs/{{pac}}/users/{{user}}/drupal-civicrm"
